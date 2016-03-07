@@ -1,0 +1,28 @@
+Can we talk to both the DC motor HAT, *and* the PWM hat? 
+Yes! 
+root@cameronpi:~/prototank# i2cdetect -y 1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: 40 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: 60 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: 70 -- -- -- -- -- -- --  
+
+Which is which? 
+- Confirmed: 0x60 is the motor hat...  
+- Which makes: 0x40 the PWM hat...
+- And, everybody knows, 0x70 is the "all call" address on the i2c bus!
+
+# From the online tutorial:
+git clone https://github.com/adafruit/Adafruit-Motor-HAT-Python-Library.git
+sudo apt-get install python-dev
+cd Adafruit-Motor-HAT-Python-Library
+python setup.py install
+cd examples
+
+# ... I edited DCTest.py, to use a minSpeed cutoff, and to use "motor #1" (default was 1)
+# 
+python DCTest.py  # works a treat!

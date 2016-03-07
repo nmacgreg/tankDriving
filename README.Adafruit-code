@@ -1,0 +1,6 @@
+git clone https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code
+
+So, there's a tutorial on using the i2c bus on your raspi... that's cool
+https://learn.adafruit.com/adafruit-16-channel-pwm-slash-servo-shield
+
+

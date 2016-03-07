@@ -1,0 +1,18 @@
+See README.i2c, because, I actually got it working on i2c.
+
+On Adafruit's site, I found a tutorial on the IMU, aka BNO05, which suggested a bug in 
+"clock stretching" in i2c on the Pi, would cause serious problems with this device!
+However, before I read this, I proceeded to hook it up vi i2c, and *** it worked ***
+(i2detect actualy registered the address, anyway!)
+
+The tutorial went on to suggest pinout that would throw the BNO05 into UART mode, and we use TX/RX to 
+talk to the IMU. So, I wired that up, too!
+
+Steps:
+1. root@cameronpi:~/prototank# git clone https://github.com/adafruit/Adafruit_Python_BNO055.git
+
+2. root@cameronpi:~/prototank# apt-get install -y build-essential python-dev python-smbus python-pip git
+
+
+3. root@cameronpi:~/prototank/Adafruit_Python_BNO055# python setup.py install
+

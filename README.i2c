@@ -1,0 +1,26 @@
+/etc/modules.conf was edited, adding two modules for i2c support in the kernel
+
+/boot/config.txt was also edited, enabling support for i2c.
+
+When you get that right, you'll see the modules loaded: 
+root@cameronpi:~# lsmod | grep i2c
+i2c_dev                 6027  0 
+i2c_bcm2708             4990  0 
+
+... and you can query the bus-> this is what it looks like when nothing is connected:
+root@cameronpi:~# i2cdetect -y 1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- -- --
+
+References: 
+https://www.adafruit.com/products/2327 --> 16-channel PWM/Servo Hat
+*** must get stacking header, if you want *BOTH* the DC motor hat, and the 
+Servo hat at the same time...  drat!
+

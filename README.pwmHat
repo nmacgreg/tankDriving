@@ -1,0 +1,27 @@
+
+Address on the hat is 0x40, as covered in the README.dcMotorHat: 
+root@cameronpi:~/prototank# i2cdetect -y 1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: 40 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: 60 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: 70 -- -- -- -- -- -- --             
+
+(0x60 is the DC Motor hat, & 0x70 is the i2c "all call" address)
+
+So, we're in very good shape.
+
+Power:  Need 5v DC.   I don't have that.  
+And the right barrel-jack, which I have.
+
+
+# from the tutorial: 
+git clone https://github.com/Adafruit-Raspberry-Pi-Python-Code.git  # actually, already have this, from a previous README
+#
+cd Adafruit-Raspberry-Pi-Python-Code
+cd Adafruit_PWM_Servo_Driver
+python Servo_Example.py
