@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # Author: Neil MacGregor
 # Date: Mar 5, 2016
 # Purpose: Diddling with combining the example code from both the BNO055 & DC Motor Hat. 
@@ -46,11 +47,16 @@ def save_calibration():
 
 def load_calibration():
     # Load calibration from disk.
-    with open(CALIBRATION_FILE, 'r') as cal_file:
-        data = json.load(cal_file)
-    # Use stored calibration data 
+    try:
+        with open(CALIBRATION_FILE, 'r') as cal_file:
+           data = json.load(cal_file)
+    except IOError:
+           print "Unable to load calibration file, try manual calibration"
+           return 'FAIL'
+    # Use stored calibration data
     bno.set_calibration(data)
     return 'OK'
+
 
 # It's important that we ensure motors are always turned off, here at the start!  The PWM card doesn't have a 
 # watchdog, and will merely keep driving as long as the power is on!
@@ -145,55 +151,138 @@ RightMotor.setSpeed(225)
 #LeftMotor.run(Adafruit_MotorHAT.FORWARD);
 #RightMotor.run(Adafruit_MotorHAT.FORWARD);
 
-speed=155
-fwdTrim=10
-bkwFactor=2
-adjustRate=2
+######################################### makesteam()
+def makeSteam(targetHeading,duration):
 
-print "Forward! "
-# before we start moving, note our heading...
-initialHeading, roll, pitch = bno.read_euler()
+   if targetHeading < 0 or targetHeading > 360:
+	print 'The targetHeading is set to a ridiculous value: {0:0.2F}'.format(targetHeading)
+        return "OK"
 
-# initialize timestamps
-startTime=calendar.timegm(time.gmtime())	
-currentTime=calendar.timegm(time.gmtime())
-print 'Initial Heading: {0:0.2F}, start time:{1:5d}'.format(initialHeading,startTime) 
-
-# set initial motor speed
-LeftMotor.setSpeed(speed+fwdTrim)
-RightMotor.setSpeed(speed)
-rightSpeed=speed+fwdTrim
-leftSpeed=speed
-range=30
-
-# start us rolling forward
-LeftMotor.run(Adafruit_MotorHAT.FORWARD)
-RightMotor.run(Adafruit_MotorHAT.FORWARD)
-# get the current time; limit the amount of time for which we'll run 
-while startTime+10 > currentTime:
+   speed=155
+   stallSpeed=155
+   fwdTrim=10
+   bkwFactor=2
+   adjustRate=5
+   
+   print "***************** Forward! ****************** "
+   # before we start moving, note our heading...
+   initialHeading, roll, pitch = bno.read_euler()
+   
+   # initialize timestamps
+   startTime=calendar.timegm(time.gmtime())	
    currentTime=calendar.timegm(time.gmtime())
-   heading, roll, pitch = bno.read_euler()
-   print 'Current Heading: {0:0.2F}, current time: {1:5d}, leftSpeed={2:3d} rightSpeed={3:3d}'.format(heading,currentTime,leftSpeed,rightSpeed) 
-   if (heading<initialHeading):           # we're tracking left, either slow the right, or speed up the left
-      flip = random.randint(0, 1)
-      if flip == 0:
-         leftSpeed=leftSpeed+adjustRate
-	 LeftMotor.setSpeed(leftSpeed)
-      else:
-         rightSpeed=rightSpeed-adjustRate		   
-         RightMotor.setSpeed(rightSpeed)
-   if (heading>initialHeading): 	   # we're tracking clockwise, slow the left track
-      flip = random.randint(0, 1)
-      if flip == 0:
-         rightSpeed=rightSpeed+adjustRate
-         RightMotor.setSpeed(rightSpeed)
-      else:
-         leftSpeed=leftSpeed-adjustRate
-         LeftMotor.setSpeed(leftSpeed)
-   x,y,z,w = bno.read_quaternion()
-   print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
-   time.sleep(0.1)   
+   print 'Initial Heading: {0:0.2F}, targetHeading: {1:0.2F}, start time:{2:5d} '.format(initialHeading,targetHeading, startTime) 
+   
+   # set initial motor speed
+   LeftMotor.setSpeed(speed+fwdTrim)
+   RightMotor.setSpeed(speed)
+   rightSpeed=speed+fwdTrim
+   leftSpeed=speed
+   range=30
+   
+   # start us rolling forward
+   LeftMotor.run(Adafruit_MotorHAT.FORWARD)
+   RightMotor.run(Adafruit_MotorHAT.FORWARD)
+   # get the current time; limit the amount of time for which we'll run 
+   while startTime+duration > currentTime:
+      currentTime=calendar.timegm(time.gmtime())
+      heading, roll, pitch = bno.read_euler()
+      print 'Current Heading: {0:0.2F}, current time: {1:5d}, leftSpeed={2:3d} rightSpeed={3:3d}'.format(heading,currentTime,leftSpeed,rightSpeed) 
+      # There is a lot of twisted logic here, specifically around the fact that the compass reading flops over from 360 degrees to 1, 
+      # so the math is non-linear!
+      if (heading<targetHeading):           # we're tracking left, either slow the right, or speed up the left
+         flip = random.randint(0, 1)	
+         if flip == 0:
+            leftSpeed=leftSpeed+adjustRate
+	    LeftMotor.setSpeed(leftSpeed)
+         else:
+            rightSpeed=rightSpeed-adjustRate		   
+            RightMotor.setSpeed(rightSpeed)
+      if (heading>targetHeading): 	   # we're tracking clockwise, slow the left track
+         flip = random.randint(0, 1)
+         if flip == 0:
+            rightSpeed=rightSpeed+adjustRate
+            RightMotor.setSpeed(rightSpeed)
+         else:
+            leftSpeed=leftSpeed-adjustRate
+            LeftMotor.setSpeed(leftSpeed)
+      #x,y,z,w = bno.read_quaternion()
+      #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
+      time.sleep(0.1)   
+      # Despite the coinflips above, I'm still seeing stalling.  This will prevent stalling:
+      if rightSpeed < stallSpeed: 
+         rightSpeed=stallSpeed
+         leftSpeed=leftSpeed + adjustRate  # we're trying to turn Right; mkake left-side track turn faster
+      if leftSpeed < stallSpeed:
+         leftSpeed=stallSpeed	
+	 rightspeed=leftSpeed + adjustRate # we're trying to turn Left; make right-side track turn faster	
 
-print "Stop, done"
-LeftMotor.run(Adafruit_MotorHAT.RELEASE)
-RightMotor.run(Adafruit_MotorHAT.RELEASE)
+   
+   print "Stop, done"
+   LeftMotor.run(Adafruit_MotorHAT.RELEASE)
+   RightMotor.run(Adafruit_MotorHAT.RELEASE)
+
+def turn(degreesToTurn): # Turn input # of Degrees ============================ 
+   heading, roll, pitch = bno.read_euler()
+   targetHeading=heading+degreesToTurn;
+   if targetHeading> 360:
+      targetHeading=targetHeading-360
+   print '******** Starting {0:0.2F} degree turn, to targetHeading: {1:0.2F} ! ***********'.format (degreesToTurn,targetHeading)
+   # flip a coin, to see if we'll turn left or right...  I think we need a generic "staticTurn" routine
+   startTime=calendar.timegm(time.gmtime())	
+   currentTime=calendar.timegm(time.gmtime())
+   LeftMotor.setSpeed(180)
+   RightMotor.setSpeed(180)
+   LeftMotor.run(Adafruit_MotorHAT.FORWARD)
+   RightMotor.run(Adafruit_MotorHAT.BACKWARD)
+   while startTime+10 > currentTime:      # restrict me to 10 seconds to make the turn
+      currentTime=calendar.timegm(time.gmtime())
+      heading, roll, pitch = bno.read_euler()
+      print 'Underway, Current Heading: {0:0.2F}, current time: {1:5d}'.format(heading,currentTime)
+      if targetHeading < 180:
+         if heading > 180:
+            print "Continuing past 360 degrees.."
+            time.sleep(0.05)
+            next
+         elif (heading>targetHeading):           # stop!
+            LeftMotor.run(Adafruit_MotorHAT.RELEASE)
+            RightMotor.run(Adafruit_MotorHAT.RELEASE)
+            break
+      elif (heading>targetHeading):           # stop!
+         LeftMotor.run(Adafruit_MotorHAT.RELEASE)
+         RightMotor.run(Adafruit_MotorHAT.RELEASE)
+         break
+      #x,y,z,w = bno.read_quaternion()
+      #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
+      time.sleep(0.05)
+   
+   print "Stop, done"
+   LeftMotor.run(Adafruit_MotorHAT.RELEASE)
+   RightMotor.run(Adafruit_MotorHAT.RELEASE)
+   heading, roll, pitch = bno.read_euler()
+   print 'Target Heading: {0:0.2F}, final heading:{1:0.2F}'.format(targetHeading,heading)
+
+duration=4
+# get the current heading
+heading, roll, pitch = bno.read_euler()
+initialHeading=heading
+
+makeSteam (heading, duration)
+turn(180)
+returnHeading = heading+180
+if returnHeading > 360:
+	returnHeading = returnHeading -360
+
+makeSteam(returnHeading, duration)
+turn(180)
+
+
+
+#nextHeading = heading
+#for x in range (0,3):
+#   makeSteam(nextHeading,duration)
+#   nextHeading = nextHeading +90; 
+#   if nextHeading > 360:
+#      nextHeading=nextHeading -360
+#   turn(90)
+
