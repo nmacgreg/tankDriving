@@ -5,6 +5,7 @@ import logging
 #import sys
 import time
 import random
+import math
 
 from Adafruit_BNO055 import BNO055
 
@@ -146,6 +147,7 @@ class navControl:
          currentTime=calendar.timegm(time.gmtime())
          heading, roll, pitch = self.bno.read_euler()
          print 'Current Heading: {0:0.2F}, current time: {1:5d}, leftSpeed={2:3d} rightSpeed={3:3d}'.format(heading,currentTime,leftSpeed,rightSpeed) 
+	 #if (adjustHeading(initialHeading) == "turnRight"):
          if (heading<initialHeading):           # we're tracking left, either slow the right, or speed up the left
             flip = random.randint(0, 1)
             if flip == 0:
@@ -154,6 +156,7 @@ class navControl:
             else:
                rightSpeed=rightSpeed-adjustRate		   
                RightMotor.setSpeed(rightSpeed)
+	 #if (adjustHeading(initialHeading) == "turnLeft"):
          if (heading>initialHeading): 	   # we're tracking clockwise, slow the left track
             flip = random.randint(0, 1)
             if flip == 0:
@@ -169,3 +172,29 @@ class navControl:
       print "Stop, done"
       LeftMotor.run(Adafruit_MotorHAT.RELEASE)
       RightMotor.run(Adafruit_MotorHAT.RELEASE)
+
+
+   def adjustHeading(self, targetHeading):
+      # Tricky: compare the current compass heading, to a target heading, and decide if we're tracking to the left or right of target
+      # It's fine if the target it 90deg, and the current heading is 100, that's easy, turn left (100 > 90)
+      # But if the target is 350deg, and the current heading is 5deg, the math goes sideways!
+
+      # We need a function that makes this true:  350 < 360 < 10  (eg target is 360)
+      # and:  355 < 10 < 15   (when the target is 10) 
+
+      # sin()?  cos()?  I merely want to know am I left or right from the target?
+      # (pretty sure this is wrong)
+      targetHeading = math.sin(targetHeading)
+      currentHeading=self.getHeading()
+      currentHeading=math.sin(currentHeading)
+
+      if currentHeading < targetHeading:
+         return "turnRight"
+      else:
+         return "turnLeft"
+
+   # local interface, simplifying use of the BNO055 IMU circuit board, for yaw heading, measured in degrees
+   def getHeading(self):
+      currentHeading, roll, pitch = self.bno.read_euler()
+      print ('got Heading: {0:0.2F}'.format(currentHeading))
+      return currentHeading
