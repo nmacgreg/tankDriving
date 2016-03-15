@@ -179,20 +179,54 @@ class navControl:
       # It's fine if the target it 90deg, and the current heading is 100, that's easy, turn left (100 > 90)
       # But if the target is 350deg, and the current heading is 5deg, the math goes sideways!
 
+      # input validation: only valid compass readings will be accepted
+      if  targetHeading < 0 or targetHeading > 360:
+         print 'Input validation failed in adjustHeading'
+         exit -1
+
       # We need a function that makes this true:  350 < 360 < 10  (eg target is 360)
       # and:  355 < 10 < 15   (when the target is 10) 
 
-      # sin()?  cos()?  I merely want to know am I left or right from the target?
-      # (pretty sure this is wrong)
-      targetHeading = math.sin(targetHeading)
+      # Retrieve the current heading from the IMU: 
       currentHeading=self.getHeading()
-      currentHeading=math.sin(currentHeading)
 
-      if currentHeading < targetHeading:
+      # Piecemeal approach: 
+      if currentHeading == targetHeading:
+         return "goStraight"
+      # if the difference between the two values is less than 180 degrees, we have no math problems: just compare the numbers 
+      if abs(currentHeading-targetHeading) < 180:
+         if currentHeading < targetHeading:
+            return "turnRight"
+         else:
+            return "turnLeft"
+
+      # Otherwise, there are a couple of scenarios I care about...
+      if (targetHeading < 90 and currentHeading >270):   # target in Q1, current in Q4 --- this is the really weird part
          return "turnRight"
-      else:
+      if (targetHeading > 270 and currentHeading < 90 ): # target in Q4, current in Q1 --- equally weird
          return "turnLeft"
 
+      # 
+      # The difference between the two angles is *more* than 180 degrees, but we're not crossing 360... meaning it's faster to
+      # turn the *wrong* direction, to get where we're going.
+      if (currentHeading < targetHeading ):
+          return "turnLeft"
+      if (currentHeading > targetHeading ):
+          return "turnRight"
+
+  
+      print "Unhandled..." 
+      return "I do not know"
+
+      #got Heading: 205.94
+      #Initial heading: 23.50; we should: None 
+
+
+      #if currentHeading < targetHeading:
+         #return "turnRight"
+      #else:
+         #return "turnLeft"
+      
    # local interface, simplifying use of the BNO055 IMU circuit board, for yaw heading, measured in degrees
    def getHeading(self):
       currentHeading, roll, pitch = self.bno.read_euler()

@@ -13,13 +13,14 @@ control=navControl()
 
 # Let's try some driving!
 print '\n *** Ready to run *** \n'
+time.sleep(5)
 
 initialHeading = control.getHeading()
 print 'Initial heading: {0:0.2F}'.format(initialHeading)
 while (True):
    direction = control.adjustHeading(initialHeading)
    print "Initial heading: {0:0.2F}; we should: {1} ".format(initialHeading, direction)
-   time.sleep(0.2)
+   time.sleep(0.5)
 
 exit
 #control.startDrive()
