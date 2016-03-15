@@ -66,15 +66,15 @@ class navControl:
          sys=0
          while sys!=3:
             # Read the Euler angles for heading, roll, pitch (all in degrees).
-            heading, roll, pitch = bno.read_euler()
+            heading, roll, pitch = self.bno.read_euler()
             # Read the calibration status, 0=uncalibrated and 3=fully calibrated.
-            sys, gyro, accel, mag = bno.get_calibration_status()
+            sys, gyro, accel, mag = self.bno.get_calibration_status()
             # Print everything out.
             print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}\tSys_cal={3} Gyro_cal={4} Accel_cal={5} Mag_cal={6}'.format(
                   heading, roll, pitch, sys, gyro, accel, mag))
             # Other values you can optionally read:
             # Orientation as a quaternion:
-            x,y,z,w = bno.read_quaternion()
+            x,y,z,w = self.bno.read_quaternion()
             #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
             #print ('Quaternion: x= {0:0.2F} y={1:0.2F} z={2:0.2F},\t'.format(x,y,z))
             time.sleep(1)
@@ -112,7 +112,7 @@ class navControl:
       return 'OK'
 
 
-   def startDrive(self):
+   def startDrive(self,initialHeading,duration):
 
       ################################# DC motor test!
       RightMotor = self.mh.getMotor(1)  # orange track... Right!
@@ -125,7 +125,7 @@ class navControl:
 
       print "Forward! "
       # before we start moving, note our heading...
-      initialHeading, roll, pitch = self.bno.read_euler()
+      #initialHeading, roll, pitch = self.bno.read_euler()
 
       # initialize timestamps
       startTime=calendar.timegm(time.gmtime())	
@@ -143,7 +143,7 @@ class navControl:
       LeftMotor.run(Adafruit_MotorHAT.FORWARD)
       RightMotor.run(Adafruit_MotorHAT.FORWARD)
       # get the current time; limit the amount of time for which we'll run 
-      while startTime+10 > currentTime:
+      while startTime+duration > currentTime:
          currentTime=calendar.timegm(time.gmtime())
          heading, roll, pitch = self.bno.read_euler()
          print 'Current Heading: {0:0.2F}, current time: {1:5d}, leftSpeed={2:3d} rightSpeed={3:3d}'.format(heading,currentTime,leftSpeed,rightSpeed) 
@@ -232,3 +232,48 @@ class navControl:
       currentHeading, roll, pitch = self.bno.read_euler()
       print ('got Heading: {0:0.2F}'.format(currentHeading))
       return currentHeading
+
+
+   def turn(self,degreesToTurn): # Turn input # of Degrees ============================ 
+      RightMotor = self.mh.getMotor(1)  # orange track... Right!
+      LeftMotor  = self.mh.getMotor(2)  # blue track... Left!
+
+      heading, roll, pitch = self.bno.read_euler()
+      targetHeading=heading+degreesToTurn;
+      if targetHeading> 360:
+         targetHeading=targetHeading-360
+      print '******** Starting {0:0.2F} degree turn, to targetHeading: {1:0.2F} ! ***********'.format (degreesToTurn,targetHeading)
+      # flip a coin, to see if we'll turn left or right...  I think we need a generic "staticTurn" routine
+      startTime=calendar.timegm(time.gmtime())	
+      currentTime=calendar.timegm(time.gmtime())
+      LeftMotor.setSpeed(180)
+      RightMotor.setSpeed(180)
+      LeftMotor.run(Adafruit_MotorHAT.FORWARD)
+      RightMotor.run(Adafruit_MotorHAT.BACKWARD)
+      while startTime+10 > currentTime:      # restrict me to 10 seconds to make the turn
+         currentTime=calendar.timegm(time.gmtime())
+         heading, roll, pitch = self.bno.read_euler()
+         print 'Underway, Current Heading: {0:0.2F}, current time: {1:5d}'.format(heading,currentTime)
+         if targetHeading < 180:
+            if heading > 180:
+               print "Continuing past 360 degrees.."
+               time.sleep(0.05)
+               next
+            elif (heading>targetHeading):           # stop!
+               LeftMotor.run(Adafruit_MotorHAT.RELEASE)
+               RightMotor.run(Adafruit_MotorHAT.RELEASE)
+               break
+         elif (heading>targetHeading):           # stop!
+            LeftMotor.run(Adafruit_MotorHAT.RELEASE)
+            RightMotor.run(Adafruit_MotorHAT.RELEASE)
+            break
+         #x,y,z,w = self.bno.read_quaternion()
+         #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
+         time.sleep(0.05)
+      
+      print "Stop, done"
+      LeftMotor.run(Adafruit_MotorHAT.RELEASE)
+      RightMotor.run(Adafruit_MotorHAT.RELEASE)
+      heading, roll, pitch = self.bno.read_euler()
+      print 'Target Heading: {0:0.2F}, final heading:{1:0.2F}'.format(targetHeading,heading)
+   
