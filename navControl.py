@@ -20,6 +20,7 @@ import json
 class navControl: 
    'General navigation: waypoints, object detection and mitigation, and strategy'
    # class variables go here
+   DEBUG=0 
 
    def __init__(self):
       # create an object for communication with the DC motor hat, no changes to default I2C address or frequency
@@ -74,9 +75,10 @@ class navControl:
                   heading, roll, pitch, sys, gyro, accel, mag))
             # Other values you can optionally read:
             # Orientation as a quaternion:
-            x,y,z,w = self.bno.read_quaternion()
-            #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
-            #print ('Quaternion: x= {0:0.2F} y={1:0.2F} z={2:0.2F},\t'.format(x,y,z))
+            #if DEBUG:
+               #x,y,z,w = self.bno.read_quaternion()
+               #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
+               #print ('Quaternion: x= {0:0.2F} y={1:0.2F} z={2:0.2F},\t'.format(x,y,z))
             time.sleep(1)
 
       if loaded_cal==1:
@@ -119,7 +121,7 @@ class navControl:
       LeftMotor  = self.mh.getMotor(2)  # blue track... Left!
 
       speed=155
-      fwdTrim=10
+      fwdTrim=5
       bkwFactor=2
       adjustRate=2
 
@@ -130,7 +132,7 @@ class navControl:
       # initialize timestamps
       startTime=calendar.timegm(time.gmtime())	
       currentTime=calendar.timegm(time.gmtime())
-      print 'Initial Heading: {0:0.2F}, start time:{1:5d}'.format(initialHeading,startTime) 
+      print 'Target Heading: {0:0.2F}, start time:{1:5d}'.format(initialHeading,startTime) 
 
       # set initial motor speed
       LeftMotor.setSpeed(speed+fwdTrim)
@@ -146,9 +148,14 @@ class navControl:
       while startTime+duration > currentTime:
          currentTime=calendar.timegm(time.gmtime())
          heading, roll, pitch = self.bno.read_euler()
-         print 'Current Heading: {0:0.2F}, current time: {1:5d}, leftSpeed={2:3d} rightSpeed={3:3d}'.format(heading,currentTime,leftSpeed,rightSpeed) 
-	 #if (adjustHeading(initialHeading) == "turnRight"):
-         if (heading<initialHeading):           # we're tracking left, either slow the right, or speed up the left
+         if self.DEBUG: 
+            print 'Current Heading: {0:0.2F}, current time: {1:5d}, leftSpeed={2:3d} rightSpeed={3:3d}'.format(heading,currentTime,leftSpeed,rightSpeed) 
+         #if (heading<initialHeading):           # we're tracking left, either slow the right, or speed up the left
+	 if (self.adjustHeading(initialHeading) == "goStraight"):
+            next
+	 if (self.adjustHeading(initialHeading) == "turnRight"):
+            if self.DEBUG:
+                print "Turning Right -->"
             flip = random.randint(0, 1)
             if flip == 0:
                leftSpeed=leftSpeed+adjustRate
@@ -156,8 +163,10 @@ class navControl:
             else:
                rightSpeed=rightSpeed-adjustRate		   
                RightMotor.setSpeed(rightSpeed)
-	 #if (adjustHeading(initialHeading) == "turnLeft"):
-         if (heading>initialHeading): 	   # we're tracking clockwise, slow the left track
+         #if (heading>initialHeading): 	   # we're tracking clockwise, slow the left track
+	 if (self.adjustHeading(initialHeading) == "turnLeft"):
+            if self.DEBUG:
+                print "Turning Left <--"
             flip = random.randint(0, 1)
             if flip == 0:
                rightSpeed=rightSpeed+adjustRate
@@ -165,8 +174,9 @@ class navControl:
             else:
                leftSpeed=leftSpeed-adjustRate
                LeftMotor.setSpeed(leftSpeed)
-         x,y,z,w = self.bno.read_quaternion()
-         print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
+         #if self.DEBUG: 
+            #x,y,z,w = self.bno.read_quaternion()
+            #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
          time.sleep(0.1)   
 
       print "Stop, done"
@@ -230,11 +240,14 @@ class navControl:
    # local interface, simplifying use of the BNO055 IMU circuit board, for yaw heading, measured in degrees
    def getHeading(self):
       currentHeading, roll, pitch = self.bno.read_euler()
-      print ('got Heading: {0:0.2F}'.format(currentHeading))
+      #if DEBUG: 
+      #   print ('got Heading: {0:0.2F}'.format(currentHeading))
       return currentHeading
 
-
+   # this is currently limited to turning Right, clockwise!
    def turn(self,degreesToTurn): # Turn input # of Degrees ============================ 
+      motorSpeed=180
+
       RightMotor = self.mh.getMotor(1)  # orange track... Right!
       LeftMotor  = self.mh.getMotor(2)  # blue track... Left!
 
@@ -246,14 +259,15 @@ class navControl:
       # flip a coin, to see if we'll turn left or right...  I think we need a generic "staticTurn" routine
       startTime=calendar.timegm(time.gmtime())	
       currentTime=calendar.timegm(time.gmtime())
-      LeftMotor.setSpeed(180)
-      RightMotor.setSpeed(180)
+      LeftMotor.setSpeed(motorSpeed)
+      RightMotor.setSpeed(motorSpeed)
       LeftMotor.run(Adafruit_MotorHAT.FORWARD)
       RightMotor.run(Adafruit_MotorHAT.BACKWARD)
       while startTime+10 > currentTime:      # restrict me to 10 seconds to make the turn
          currentTime=calendar.timegm(time.gmtime())
          heading, roll, pitch = self.bno.read_euler()
-         print 'Underway, Current Heading: {0:0.2F}, current time: {1:5d}'.format(heading,currentTime)
+         if self.DEBUG: 
+            print 'Underway, Current Heading: {0:0.2F}, current time: {1:5d}'.format(heading,currentTime)
          if targetHeading < 180:
             if heading > 180:
                print "Continuing past 360 degrees.."
@@ -267,8 +281,9 @@ class navControl:
             LeftMotor.run(Adafruit_MotorHAT.RELEASE)
             RightMotor.run(Adafruit_MotorHAT.RELEASE)
             break
-         #x,y,z,w = self.bno.read_quaternion()
-         #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
+         #if self.DEBUG:
+            #x,y,z,w = self.bno.read_quaternion()
+            #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
          time.sleep(0.05)
       
       print "Stop, done"
