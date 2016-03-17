@@ -59,6 +59,7 @@ class navControl:
 
       print('Reading BNO055 data, press Ctrl-C to quit...')
 
+      #if self.DEBUG:  			# use this to force calibration
       if self.load_calibration():
          print "Successfully loaded calibration from file"
          loaded_cal=0
@@ -82,7 +83,7 @@ class navControl:
             time.sleep(1)
 
       if loaded_cal==1:
-         save_calibration()
+         self.save_calibration()
 
       print "\nCalibration complete!\n"
 
@@ -107,11 +108,18 @@ class navControl:
 
    def load_calibration(self):
       # Load calibration from disk.
-      with open(self.CALIBRATION_FILE, 'r') as cal_file:
-          data = json.load(cal_file)
-      # Use stored calibration data 
-      self.bno.set_calibration(data)
-      return 'OK'
+      try:
+        with open(self.CALIBRATION_FILE, 'r') as cal_file:
+           data = json.load(cal_file)
+      except IOError:
+           print "Unable to load calibration file, try manual calibration"
+           return False
+      calibrationStatus = self.bno.set_calibration(data)
+      return True
+      #if calibrationStatus == True:
+#	 return True
+#      else:
+#         return False
 
 
    def startDrive(self,initialHeading,duration):
