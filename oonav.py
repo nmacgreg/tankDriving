@@ -17,7 +17,6 @@ for countdown in range (5,0,-1):
    time.sleep(1)
 print '\n I am off to the races \n'
 
-# Let's try some driving!
 def headingTest():
    initialHeading = control.getHeading()
    print 'Initial heading: {0:0.2F}'.format(initialHeading)
@@ -26,11 +25,17 @@ def headingTest():
       print "Initial heading: {0:0.2F}; we should: {1} ".format(initialHeading, direction)
       time.sleep(0.5)
 
+
+# Let's try some driving!
+# Does the compass need further calibration?
+#control.turn(180)
+#control.turn(180)
+
 # clockwise square
 initialHeading = control.getHeading()
 driveTo=initialHeading
 duration=4
-corners=80
+corners=82
 for counter in range(1,5):
    print '*** Leg: {0:2d}'.format(counter)
    #if counter == 3:
@@ -41,3 +46,6 @@ for counter in range(1,5):
    if driveTo > 360:
       driveTo=driveTo-360
    
+
+# I feel like the drift in navigation is catching up with me! 
+# The first 2 corners are fine, but the 3rd turn is pitiful, the 4th leg is cockeyed, and final turn seems incomplete
