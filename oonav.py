@@ -39,7 +39,7 @@ corners=82
 for counter in range(1,5):
    print '*** Leg: {0:2d}'.format(counter)
    #if counter == 3:
-      #control.DEBUG=1
+      #control.DEBUG=True
    control.startDrive(driveTo, duration)
    control.turn(corners)
    driveTo=driveTo+90

@@ -6,6 +6,7 @@ import logging
 import time
 import random
 import math
+import Quaternion
 
 from Adafruit_BNO055 import BNO055
 
@@ -20,7 +21,7 @@ import json
 class navControl: 
    'General navigation: waypoints, object detection and mitigation, and strategy'
    # class variables go here
-   DEBUG=0 
+   DEBUG = False
 
    def __init__(self):
       # create an object for communication with the DC motor hat, no changes to default I2C address or frequency
@@ -182,9 +183,9 @@ class navControl:
             else:
                leftSpeed=leftSpeed-adjustRate
                LeftMotor.setSpeed(leftSpeed)
-         #if self.DEBUG: 
-            #x,y,z,w = self.bno.read_quaternion()
-            #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
+         if self.DEBUG: 
+            x,y,z,w = self.bno.read_quaternion()
+            print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
          time.sleep(0.1)   
 
       print "Stop, done"
