@@ -6,16 +6,17 @@ import logging
 import time
 import random
 import math
-import Quaternion
+#import Quaternion
+import time
+import atexit
+import calendar
+import json
 
 from Adafruit_BNO055 import BNO055
 
 from Adafruit_MotorHAT import Adafruit_MotorHAT, Adafruit_DCMotor
 
-import time
-import atexit
-import calendar
-import json
+from Adafruit_PWM_Servo_Driver import PWM
 
 
 class navControl: 
@@ -36,6 +37,10 @@ class navControl:
       # It's important that we ensure motors are always turned off, here at the start!  The DCMotor hat doesn't have a 
       # watchdog, and will merely keep driving as long as the power is on!
       self.turnOffMotors()
+
+      # Initialise the PWM device using the default address
+      self.pwm = PWM(0x40)
+      self.panAndTilt(350,300)
 
       # Initialize the BNO055 and stop if something went wrong.
       if not self.bno.begin():
@@ -301,3 +306,31 @@ class navControl:
       heading, roll, pitch = self.bno.read_euler()
       print 'Target Heading: {0:0.2F}, final heading:{1:0.2F}'.format(targetHeading,heading)
    
+
+   def panAndTilt(self,pan,tilt):
+
+      servoMin = 150  # Min pulse length out of 4096
+      servoMax = 600  # Max pulse length out of 4096
+
+      # input validation:
+      if pan < servoMin: 
+         pan=servoMin
+      if pan > servoMax:
+         pan = servoMax
+      if tilt< servoMin:
+         tilt=servoMin
+      if tilt> servoMax:
+         tilt=servoMax
+
+      self.pwm.setPWMFreq(60)                        # Set frequency to 60 Hz
+
+      # yes, we're only using the first 2 of 16 channels.  Lotsa room for more fun, later!
+      self.pwm.setPWM(0, 0, tilt)
+      self.pwm.setPWM(1, 0, pan)
+      
+      #self.pwm.setPWM(0, 0, servoMin)
+      #self.pwm.setPWM(0, 0, servoMax)
+      #self.pwm.setPWM(1, 0, servoMin)
+      #self.pwm.setPWM(1, 0, servoMax)
+
+      return True # maybe we need to examine return codes from pwm.setPWM, no?

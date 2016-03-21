@@ -1,2 +1,5 @@
 calibration.json
 navControl.pyc
+Adafruit_I2C.pyc
+Adafruit_PWM_Servo_Driver.pyc
+
