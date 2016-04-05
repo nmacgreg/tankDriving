@@ -1,4 +1,4 @@
-/etc/modules.conf was edited, adding two modules for i2c support in the kernel
+/etc/modules was edited, adding two modules for i2c support in the kernel
 
 /boot/config.txt was also edited, enabling support for i2c.
 
