@@ -7,7 +7,6 @@ from navControl import navControl
 if len(sys.argv) == 2 and sys.argv[1].lower() == '-v':
    logging.basicConfig(level=logging.DEBUG)
 
-
 # instantiate object
 control=navControl()
 
@@ -25,7 +24,6 @@ def headingTest():
       print "Initial heading: {0:0.2F}; we should: {1} ".format(initialHeading, direction)
       time.sleep(0.5)
 
-
 # Let's try some driving!
 # Does the compass need further calibration?
 #control.turn(180)
@@ -35,11 +33,11 @@ def headingTest():
 initialHeading = control.getHeading()
 driveTo=initialHeading
 duration=4
-corners=82
+corners=90
 for counter in range(1,5):
    print '*** Leg: {0:2d}'.format(counter)
-   #if counter == 3:
-      #control.DEBUG=True
+   if counter == 3:
+      control.DEBUG=True
    control.startDrive(driveTo, duration)
    control.turn(corners)
    driveTo=driveTo+90

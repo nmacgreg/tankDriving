@@ -1,9 +1,9 @@
 # Author: Neil MacGregor
 # Date: Mar 6, 2016
 # Purpose: A rewrite of existing code, going OO
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 import logging
 #import sys
-import time
 import random
 import math
 #import Quaternion
@@ -40,7 +40,7 @@ class navControl:
 
       # Initialise the PWM device using the default address
       self.pwm = PWM(0x40)
-      self.panAndTilt(350,300)
+      self.panAndTilt(350,350)
 
       # Initialize the BNO055 and stop if something went wrong.
       if not self.bno.begin():
@@ -127,7 +127,6 @@ class navControl:
 #      else:
 #         return False
 
-
    def startDrive(self,initialHeading,duration):
 
       ################################# DC motor test!
@@ -137,7 +136,7 @@ class navControl:
       speed=155
       fwdTrim=5
       bkwFactor=2
-      adjustRate=2
+      adjustRate=1
 
       print "Forward! "
       # before we start moving, note our heading...
@@ -158,9 +157,11 @@ class navControl:
       # start us rolling forward
       LeftMotor.run(Adafruit_MotorHAT.FORWARD)
       RightMotor.run(Adafruit_MotorHAT.FORWARD)
+      self.trackXY()
       # get the current time; limit the amount of time for which we'll run 
       while startTime+duration > currentTime:
          currentTime=calendar.timegm(time.gmtime())
+         self.trackXY()
          heading, roll, pitch = self.bno.read_euler()
          if self.DEBUG: 
             print 'Current Heading: {0:0.2F}, current time: {1:5d}, leftSpeed={2:3d} rightSpeed={3:3d}'.format(heading,currentTime,leftSpeed,rightSpeed) 
@@ -188,14 +189,16 @@ class navControl:
             else:
                leftSpeed=leftSpeed-adjustRate
                LeftMotor.setSpeed(leftSpeed)
-         if self.DEBUG: 
-            x,y,z,w = self.bno.read_quaternion()
-            print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
-         time.sleep(0.1)   
+         #if self.DEBUG: 
+         #   x,y,z,w = self.bno.read_quaternion()
+         #   print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
+         time.sleep(0.01)   
 
       print "Stop, done"
+      self.trackXY()
       LeftMotor.run(Adafruit_MotorHAT.RELEASE)
       RightMotor.run(Adafruit_MotorHAT.RELEASE)
+      self.trackXY()
 
 
    def adjustHeading(self, targetHeading):
@@ -334,3 +337,20 @@ class navControl:
       #self.pwm.setPWM(1, 0, servoMax)
 
       return True # maybe we need to examine return codes from pwm.setPWM, no?
+
+   def trackXY(self):
+      # Linear acceleration data (i.e. acceleration from movement, not gravity )
+      # returned in meters per second squared):
+      x,y,z = self.bno.read_linear_acceleration()
+      #if self.DEBUG:
+      #  print ('Acceleration: x={0:0.2F} y={1:0.2F}'.format(x, y))
+      # How can we accumulate these over time & calculate our position?
+      # Sum the second integral?  Ok, This is gonna be hard.
+
+   # Destructor.  This isn't working yet -- can't seem to destroy the object - program keeps hanging
+   def __del__(self):
+       # 
+       self.turnOffMotors()
+       del self.bno
+       del self.pwm
+       del self.mh
