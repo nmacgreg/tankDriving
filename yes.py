@@ -33,12 +33,12 @@ pwm = PWM(0x40)
 
 
 # snap-to
-panAndTilt(pwm,350,350)
-panAndTilt(pwm,350,400)
+#panAndTilt(pwm,350,350)
+panAndTilt(pwm,350,500)
 time.sleep(0.25)
 panAndTilt(pwm,350,200)
 time.sleep(0.25)
-panAndTilt(pwm,350,400)
+panAndTilt(pwm,350,500)
 time.sleep(0.25)
 panAndTilt(pwm,350,200)
 time.sleep(0.25)
