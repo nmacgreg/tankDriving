@@ -1,0 +1,63 @@
+April 5, 2016
+https://learn.adafruit.com/raspberry-pi-analog-to-digital-converters/ads1015-slash-ads1115
+
+So, wire that puppy up to 5v, then add SCL & SDA, and you'll see: 
+root@cameronpi:~/prototank# i2cdetect -y 1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: 40 -- -- -- -- -- -- -- 48 -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: 60 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: 70 -- -- -- -- -- -- --     
+
+(refresher: 0x40 = motor hat, 0x60 = PWM, I believe)
+So, the address of this board is 0x48!
+
+Retrive the code for this board from GH, and install it (
+
+  cd prototank/
+  git clone https://github.com/adafruit/Adafruit_Python_ADS1x15.git
+  cd Adafruit_Python_ADS1x15/
+  python setup.py install
+  cd examples
+Make this change: 
+	root@cameronpi:~/prototank/Adafruit_Python_ADS1x15/examples# git diff simpletest.py
+	diff --git a/examples/simpletest.py b/examples/simpletest.py
+	index 16a1cfe..7fa890a 100644
+	--- a/examples/simpletest.py
+	+++ b/examples/simpletest.py
+	@@ -9,10 +9,10 @@ import Adafruit_ADS1x15
+	 
+		 
+	 # Create an ADS1115 ADC (16-bit) instance.
+	-adc = Adafruit_ADS1x15.ADS1115()
+	+#adc = Adafruit_ADS1x15.ADS1115()
+	 
+	 # Or create an ADS1015 ADC (12-bit) instance.
+	-#adc = Adafruit_ADS1x15.ADS1015()
+	+adc = Adafruit_ADS1x15.ADS1015()
+	 
+	 # Note you can change the I2C address from its default (0x48), and/or the I2C
+	 # bus by passing in these optional parameters:
+
+
+root@cameronpi:~/prototank/Adafruit_Python_ADS1x15/examples# python simpletest.py 
+Reading ADS1x15 values, press Ctrl-C to quit...
+|      0 |      1 |      2 |      3 |
+-------------------------------------
+|    285 |    298 |    294 |    304 |
+|    277 |    281 |    287 |    287 |
+|    276 |    292 |    294 |    310 |
+|    274 |    282 |    285 |    291 |
+|    277 |    289 |    294 |    304 |
+
+
+So, wire up channel 0 to +v5 dc, and the value changes! (2707?)
+Wire it up to +3v DC, ... it also goes to 2707?
+
+Wire it up to pin 3=AN on the Maxbotix ultrasonic range sensor, and it says 30 or 31, all the time, regardless
+of what we're pointing at.  What? 
+(I did reverse the polarity on pins 6 & 7 on the URS... did I bake it?)

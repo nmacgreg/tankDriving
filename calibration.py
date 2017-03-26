@@ -33,7 +33,7 @@ def headingTest():
 # clockwise square
 initialHeading = control.getHeading()
 driveTo=initialHeading
-duration=6
+duration=20
 corners=180
 for counter in range(1,3):
    print '*** Leg: {0:2d}'.format(counter)

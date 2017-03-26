@@ -33,15 +33,27 @@ def headingTest():
 # clockwise square
 initialHeading = control.getHeading()
 driveTo=initialHeading
-duration=6
-corners=180
-for counter in range(1,3):
+duration=1
+corners=90
+
+keystroke=1
+#while keystroke != "q":
+keystroke=input('Command?')
+print "The keystroke was: ", keystroke
+switcher = {
+    "f":    control.startDrive(driveTo, duration),
+    "r":    control.turn(corners)
+}
+switcher.get(keystroke,"nothing")
+
+exit
+for counter in range(1,5):
    print '*** Leg: {0:2d}'.format(counter)
    if counter == 3:
       control.DEBUG=True
    control.startDrive(driveTo, duration)
    control.turn(corners)
-   driveTo=driveTo+180
+   driveTo=driveTo+90
    if driveTo > 360:
       driveTo=driveTo-360
    

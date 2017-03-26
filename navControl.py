@@ -133,7 +133,7 @@ class navControl:
       RightMotor = self.mh.getMotor(1)  # orange track... Right!
       LeftMotor  = self.mh.getMotor(2)  # blue track... Left!
 
-      speed=155
+      speed=180
       fwdTrim=5
       bkwFactor=2
       adjustRate=1
@@ -288,7 +288,7 @@ class navControl:
          if targetHeading < 180:
             if heading > 180:
                print "Continuing past 360 degrees.."
-               time.sleep(0.05)
+               time.sleep(0.01)
                next
             elif (heading>targetHeading):           # stop!
                LeftMotor.run(Adafruit_MotorHAT.RELEASE)
@@ -301,7 +301,7 @@ class navControl:
          #if self.DEBUG:
             #x,y,z,w = self.bno.read_quaternion()
             #print ('Quaternion: x={0:0.2F} y={1:0.2F} z={2:0.2F} w={3:0.2F}\t'.format(x, y, z, w))
-         time.sleep(0.05)
+         time.sleep(0.01)
       
       print "Stop, done"
       LeftMotor.run(Adafruit_MotorHAT.RELEASE)

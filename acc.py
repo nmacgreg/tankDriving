@@ -1,7 +1,9 @@
 #!/usr/bin/python
 # vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+
 import sys
 import time
+import calendar
 from navControl import navControl
 
 # Enable verbose debug logging if -v is passed as a parameter.   This may require attention, within the context of a class...
@@ -25,26 +27,15 @@ def headingTest():
       print "Initial heading: {0:0.2F}; we should: {1} ".format(initialHeading, direction)
       time.sleep(0.5)
 
-# Let's try some driving!
-# Does the compass need further calibration?
-#control.turn(180)
-#control.turn(180)
 
-# clockwise square
-initialHeading = control.getHeading()
-driveTo=initialHeading
-duration=6
-corners=180
-for counter in range(1,3):
-   print '*** Leg: {0:2d}'.format(counter)
-   if counter == 3:
-      control.DEBUG=True
-   control.startDrive(driveTo, duration)
-   control.turn(corners)
-   driveTo=driveTo+180
-   if driveTo > 360:
-      driveTo=driveTo-360
-   
+# Let's get a feel for the data, by *walking* the 'bot around the room, and printing the values returned
+startTime=calendar.timegm(time.gmtime())
+currentTime=calendar.timegm(time.gmtime())
+while startTime+4 > currentTime:      # restrict me to 10 seconds to make the turn
+    currentTime=calendar.timegm(time.gmtime())
+    control.trackXY()
+    time.sleep(0.1)
 
-# I feel like the drift in navigation is catching up with me! 
-# The first 2 corners are fine, but the 3rd turn is pitiful, the 4th leg is cockeyed, and final turn seems incomplete
+# Is this any help, getting the main program to end? (no!)
+del control
+

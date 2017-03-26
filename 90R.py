@@ -31,7 +31,7 @@ RightMotor.run(Adafruit_MotorHAT.FORWARD);
 LeftMotor.run(Adafruit_MotorHAT.RELEASE);
 RightMotor.run(Adafruit_MotorHAT.RELEASE);
 
-speed=130
+speed=180
 LeftMotor.setSpeed(speed)
 RightMotor.setSpeed(speed)
 

@@ -33,18 +33,14 @@ def headingTest():
 # clockwise square
 initialHeading = control.getHeading()
 driveTo=initialHeading
-duration=6
-corners=180
+duration=4
+corners=176
 for counter in range(1,3):
    print '*** Leg: {0:2d}'.format(counter)
-   if counter == 3:
-      control.DEBUG=True
    control.startDrive(driveTo, duration)
    control.turn(corners)
    driveTo=driveTo+180
    if driveTo > 360:
       driveTo=driveTo-360
    
-
-# I feel like the drift in navigation is catching up with me! 
-# The first 2 corners are fine, but the 3rd turn is pitiful, the 4th leg is cockeyed, and final turn seems incomplete
+exit
